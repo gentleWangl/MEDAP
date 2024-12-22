@@ -1,52 +1,80 @@
 import tkinter as tk
 from tkinter import messagebox
-from db.db_connection import create_db_connection, read_query
+from PIL import Image, ImageTk
+import ui.register  # 导入注册界面
+from db.utils import login_user  # 使用更新后的数据库操作函数
 
-class LoginWindow(tk.Frame):
-    def __init__(self, master=None):
-        super().__init__(master)
-        self.master = master
-        self.master.title("Login")
-        self.pack(padx=20, pady=20)
-        self.create_widgets()
+def login_window():
+    """登录界面"""
+    window = tk.Tk()
+    window.title("军事演习数据库管理系统！")
+    window.geometry("750x600")  # 设置窗口大小
 
-    def create_widgets(self):
-        self.username_label = tk.Label(self, text="Username:")
-        self.username_label.grid(row=0, column=0, padx=5, pady=5)
-        self.username_entry = tk.Entry(self)
-        self.username_entry.grid(row=0, column=1, padx=5, pady=5)
+    # 背景图片
+    background_image = Image.open('./icons/background.jpg')  # 使用Pillow加载图片
+    background_image = background_image.resize((750, 600))  # 调整大小
+    background_photo = ImageTk.PhotoImage(background_image)
+    background_label = tk.Label(window, image=background_photo)
+    background_label.place(relwidth=1, relheight=1)  # 背景覆盖整个窗口
 
-        self.password_label = tk.Label(self, text="Password:")
-        self.password_label.grid(row=1, column=0, padx=5, pady=5)
-        self.password_entry = tk.Entry(self, show="*")
-        self.password_entry.grid(row=1, column=1, padx=5, pady=5)
+    # 标题
+    title = tk.Label(window, text="欢迎来到军事演习数据库管理系统！", font=("Arial", 24, "bold"), bg="#f0f0f0")
+    title.pack(pady=20)
 
-        self.login_button = tk.Button(self, text="Login", command=self.login)
-        self.login_button.grid(row=2, columnspan=2, pady=10)
+    # 用户名和密码输入框
+    tk.Label(window, text="用户名", font=("Arial", 12), bg="#f0f0f0").pack(pady=5)
+    username_entry = tk.Entry(window, font=("Arial", 12), width=30)
+    username_entry.pack(pady=5)
 
-    def login(self):
-        username = self.username_entry.get()
-        password = self.password_entry.get()
+    tk.Label(window, text="密码", font=("Arial", 12), bg="#f0f0f0").pack(pady=5)
+    password_entry = tk.Entry(window, show="*", font=("Arial", 12), width=30)
+    password_entry.pack(pady=5)
 
-        # Here you should hash the password and compare it with the stored hash
-        connection = create_db_connection("localhost", "root", "password", "exercise_db")
-        query = f"SELECT is_admin FROM User WHERE Username='{username}' AND PasswordHash='{password}'"
-        result = read_query(connection, query)
+    # 身份选择：军事迷和管理员
+    identity_var = tk.StringVar(value="military")  # 默认为军事迷
+    identity_label = tk.Label(window, text="请选择身份", font=("Arial", 12), bg="#f0f0f0")
+    identity_label.pack(pady=5)
 
-        if result:
-            is_admin = result[0][0]
-            self.master.destroy()
-            from ui.main_window import MainWindow
-            root = tk.Tk()
-            app = MainWindow(root, is_admin=is_admin)
-            root.mainloop()
-        else:
-            messagebox.showerror("Error", "Invalid username or password")
+    radio_frame = tk.Frame(window, bg="#f0f0f0")
+    tk.Radiobutton(radio_frame, text="军事迷", variable=identity_var, value="military", font=("Arial", 12), bg="#f0f0f0").pack(side="left", padx=20)
+    tk.Radiobutton(radio_frame, text="管理员", variable=identity_var, value="admin", font=("Arial", 12), bg="#f0f0f0").pack(side="left", padx=20)
+    radio_frame.pack(pady=5)
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = LoginWindow(root)
-    root.mainloop()
+    def on_login():
+        """登录按钮点击事件"""
+        username = username_entry.get()
+        password = password_entry.get()
+        identity = identity_var.get()  # 获取选中的身份
 
+        if not username or not password:
+            messagebox.showerror("登录失败", "请输入用户名和密码")
+            return
 
+        # 调用 login_user 来验证用户
+        flag = login_user(username, password, identity)
+        if flag == 1:
+            shenfen = "军事迷" if identity=="military" else "管理员"
+            messagebox.showinfo("登录成功!", f"欢迎 {shenfen} 用户！")
+            window.destroy()
+            # 跳转到主界面
+            import ui.main_window
+            ui.main_window.main_window(identity)
+        elif flag == -1:
+            messagebox.showerror("登录失败！", "您的用户名或密码不正确")
+        else :
+            messagebox.showerror("登录失败！", "您没有此权限")
 
+    # 登录按钮
+    login_button = tk.Button(window, text="登录", command=on_login, font=("Arial", 14), bg="#4CAF50", fg="white", width=20)
+    login_button.pack(pady=20)
+
+    # 注册按钮，点击后跳转到注册界面
+    def on_register():
+        """跳转到注册界面"""
+        window.destroy()  # 关闭当前窗口
+        ui.register.register_window()  # 显示注册界面
+
+    register_button = tk.Button(window, text="注册", command=on_register, font=("Arial", 14), bg="#2196F3", fg="white", width=20)
+    register_button.pack(pady=10)
+
+    window.mainloop()
