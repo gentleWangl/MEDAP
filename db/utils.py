@@ -96,7 +96,33 @@ def fetch_all(query, params=None):
         print("数据库连接失败")
         return []
 
+def delete_record(table_name, record_id):
+    """删除指定表中的记录"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"DELETE FROM {table_name} WHERE id = %s", (record_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
+def update_record(table_name, record_id, new_value):
+    """更新指定表中的记录"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"UPDATE {table_name} SET column_name = %s WHERE id = %s", (new_value, record_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def insert_record(table_name, values):
+    """向指定表插入新记录"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    placeholders = ", ".join(["%s"] * len(values))
+    cursor.execute(f"INSERT INTO {table_name} VALUES ({placeholders})", values)
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 def login_user(username, password, identity):
     """根据用户名和密码验证用户，并检查身份是否一致"""
