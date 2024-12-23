@@ -1,6 +1,10 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from db.utils import fetch_all, delete_record, update_record, insert_record  # 引入现有的函数
+from PIL import Image, ImageTk
+
+
+
 
 def show_table(window, table_name):
     """显示选定表的数据"""
@@ -47,7 +51,14 @@ def show_table(window, table_name):
         add_button.pack(side=tk.LEFT, padx=10)
 
         # 返回按钮
-        back_button = tk.Button(window, text="返回", command=lambda: show_table_select(window))
+        # bg_image = Image.open("./icons/bk_admin01.jpg")
+        # bg_image = bg_image.resize((800, 600)) 
+        # bg_photo = ImageTk.PhotoImage(bg_image)
+        # bg_label = tk.Label(window, image=bg_photo)
+        # # bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        # bg_label.image = bg_photo  # 防止图片被垃圾回收
+        # bg_label.is_bg_label = True  # 标记为背景图片标签
+        back_button = tk.Button(window, text="返回", command=lambda: show_table_select_of_admin(window))
         back_button.pack(pady=10)
 
     except Exception as e:
@@ -139,41 +150,32 @@ def add_data(table_name):
     except Exception as e:
         messagebox.showerror("错误", f"加载表结构时发生错误: {e}")
 
-# def show_table_select(window):
-#     """显示表选择界面"""
-#     # 清空现有内容
-#     for widget in window.winfo_children():
-#         widget.destroy()
-
-#     # 创建表按钮
-#     tables = ["Exercise", "Equipment", "Scale", "Media", "Reaction"]  # 表名列表
-#     tables_CN=["军事演习","武器装备","演习规模","媒体","反应信息"]
-#     for table,table_cn in zip(tables,tables_CN):
-#         button = tk.Button(window, text=table_cn, command=lambda t=table: show_table(window, t))
-#         button.pack(fill=tk.X, padx=10, pady=5)
-
 import tkinter as tk
 from PIL import Image, ImageTk
 
-def show_table_select(window):
+def show_table_select_of_admin(window):
     """显示表选择界面"""
-    # 清空现有内容
-    for widget in window.winfo_children():
-        widget.destroy()
-
-    # 设置背景图片
+        # 设置背景图片
     bg_image = Image.open("./icons/bk_admin01.jpg")
+    bg_image = bg_image.resize((1600, 800)) 
     bg_photo = ImageTk.PhotoImage(bg_image)
     bg_label = tk.Label(window, image=bg_photo)
     bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+    bg_label.image = bg_photo  # 防止图片被垃圾回收
+    bg_label.is_bg_label = True  # 标记为背景图片标签
+    # 清空现有内容，但保留背景图片
+    for widget in window.winfo_children():
+        if not hasattr(widget, 'is_bg_label') or not widget.is_bg_label:
+            widget.destroy()
 
-    # 创建大文本框
-    entry = tk.Entry(window, font=("Arial", 20), width=50)
-    entry.pack(pady=20)
-
-    # 创建父控件
-    frame = tk.Frame(window)
-    frame.pack(side=tk.TOP, fill=tk.X, expand=True)
+     # 创建大标题
+    title_label = tk.Label(window, text="强国有我,请党放心！", font=("Arial", 50), bg='blue', fg='red')
+    title_label.pack(pady=(50, 20))
+    title_label2 = tk.Label(window, text="欢迎您，管理员同志！", font=("Arial", 30), bg='blue', fg='red')
+    title_label2.pack(pady=(50, 20))
+    # 创建父控件并设置背景透明
+    frame = tk.Frame(window, bg='white')  # 使用白色背景
+    frame.pack(side=tk.BOTTOM, fill=tk.X)  # 将父控件放置在底部
 
     # 创建表按钮
     tables = ["Exercise", "Equipment", "Scale", "Media", "Reaction"]  # 表名列表
@@ -182,28 +184,33 @@ def show_table_select(window):
 
     for i, (table, table_cn, color) in enumerate(zip(tables, tables_CN, colors)):
         button = tk.Button(frame, text=table_cn, command=lambda t=table: show_table(window, t),
-                           bg=color, fg='white', height=5, width=10)
-        button.grid(row=0, column=i, padx=10, pady=10)
+                           bg=color, fg='white', height=5, width=10,font=("Arial", 20))
+        button.grid(row=0, column=i, padx=20, pady=10, sticky='nsew')
 
-
-
-
+    # 设置网格列权重，使按钮均匀分布
+    for i in range(len(tables)):
+        frame.grid_columnconfigure(i, weight=1)
 
 def main_window(identity):
     """根据用户身份显示不同内容"""
     window = tk.Tk()
     window.title(f"{identity} 主界面")
-    window.geometry("800x600")
+    window.geometry("1600x800")
+
     if identity == "admin":
         # 显示管理员界面
-        tk.Label(window, text="管理员界面").pack(pady=20)
-
-        # 创建左侧的表按钮
-        show_table_select(window)
+        show_table_select_of_admin(window)
 
     else:
         # 显示军事迷界面
+        title_label = tk.Label(window, text="强国有我,请党放心！", font=("Arial", 50), bg='blue', fg='red')
+        title_label.pack(pady=(50, 20))
+        
         tk.Label(window, text="军事迷界面").pack(pady=20)
         tk.Button(window, text="查看演习数据").pack()
 
     window.mainloop()
+
+# 示例调用
+if __name__ == "__main__":
+    main_window("admin")  # 或者 main_window("military_enthusiast")
