@@ -139,23 +139,61 @@ def add_data(table_name):
     except Exception as e:
         messagebox.showerror("错误", f"加载表结构时发生错误: {e}")
 
+# def show_table_select(window):
+#     """显示表选择界面"""
+#     # 清空现有内容
+#     for widget in window.winfo_children():
+#         widget.destroy()
+
+#     # 创建表按钮
+#     tables = ["Exercise", "Equipment", "Scale", "Media", "Reaction"]  # 表名列表
+#     tables_CN=["军事演习","武器装备","演习规模","媒体","反应信息"]
+#     for table,table_cn in zip(tables,tables_CN):
+#         button = tk.Button(window, text=table_cn, command=lambda t=table: show_table(window, t))
+#         button.pack(fill=tk.X, padx=10, pady=5)
+
+import tkinter as tk
+from PIL import Image, ImageTk
+
 def show_table_select(window):
     """显示表选择界面"""
     # 清空现有内容
     for widget in window.winfo_children():
         widget.destroy()
 
+    # 设置背景图片
+    bg_image = Image.open("./icons/bk_admin01.jpg")
+    bg_photo = ImageTk.PhotoImage(bg_image)
+    bg_label = tk.Label(window, image=bg_photo)
+    bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+    # 创建大文本框
+    entry = tk.Entry(window, font=("Arial", 20), width=50)
+    entry.pack(pady=20)
+
+    # 创建父控件
+    frame = tk.Frame(window)
+    frame.pack(side=tk.TOP, fill=tk.X, expand=True)
+
     # 创建表按钮
     tables = ["Exercise", "Equipment", "Scale", "Media", "Reaction"]  # 表名列表
-    for table in tables:
-        button = tk.Button(window, text=table, command=lambda t=table: show_table(window, t))
-        button.pack(fill=tk.X, padx=10, pady=5)
+    tables_CN = ["军事演习", "武器装备", "演习规模", "媒体", "反应信息"]
+    colors = ['#FF6F61', '#6B5B95', '#88B04B', '#F7CAC9', '#92A8D1']  # 按钮颜色列表
+
+    for i, (table, table_cn, color) in enumerate(zip(tables, tables_CN, colors)):
+        button = tk.Button(frame, text=table_cn, command=lambda t=table: show_table(window, t),
+                           bg=color, fg='white', height=5, width=10)
+        button.grid(row=0, column=i, padx=10, pady=10)
+
+
+
+
 
 def main_window(identity):
     """根据用户身份显示不同内容"""
     window = tk.Tk()
     window.title(f"{identity} 主界面")
-
+    window.geometry("800x600")
     if identity == "admin":
         # 显示管理员界面
         tk.Label(window, text="管理员界面").pack(pady=20)
