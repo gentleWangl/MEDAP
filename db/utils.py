@@ -96,6 +96,18 @@ def fetch_all(query, params=None):
         print("数据库连接失败")
         return []
 
+def fetch_one(query):
+    """执行查询并返回单个结果"""
+    # 这里假设你有一个数据库连接对象 db_connection
+    # 你需要根据实际情况实现这个函数
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(query)
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return result
+
 def delete_record(table_name, record_id):
     """删除指定表中的记录"""
     conn = get_db_connection()
