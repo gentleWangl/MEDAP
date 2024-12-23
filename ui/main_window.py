@@ -331,32 +331,6 @@ def main_window(identity):
 
 # 统计相关函数
 
-def show_equipment_stats(window):
-    """展示装备总数统计"""
-    try:
-        # 清除现有的显示
-        for widget in window.winfo_children():
-            widget.destroy()
-
-        # 统计信息区域
-        stats_frame = tk.Frame(window)
-        stats_frame.pack(fill=tk.BOTH, expand=True, pady=10)
-
-        # 装备总数
-        total_equipment_label = tk.Label(stats_frame, text="总装备数：", font=("Arial", 14))
-        total_equipment_label.grid(row=0, column=0, padx=10, pady=5)
-
-        total_equipment_value = fetch_all("SELECT COUNT(*) FROM Equipment")
-        total_equipment_label_value = tk.Label(stats_frame, text=total_equipment_value[0][0], font=("Arial", 14))
-        total_equipment_label_value.grid(row=0, column=1, padx=10, pady=5)
-
-        # 返回按钮
-        back_button = tk.Button(window, text="返回", command=lambda: user_show_table(window, "Equipment"))
-        back_button.pack(pady=10)
-
-    except Exception as e:
-        messagebox.showerror("错误", f"加载数据时发生错误: {e}")
-
 def show_country_exercise_stats(window):
     """展示按国家统计的演习数量"""
     try:
@@ -484,6 +458,73 @@ def show_exercise_stats(window):
     except Exception as e:
         messagebox.showerror("错误", f"加载数据时发生错误: {e}")
 
+def show_equipment_stats(window):
+    """展示装备总数统计"""
+    try:
+        # 清除现有的显示
+        for widget in window.winfo_children():
+            widget.destroy()
+
+        # 设置背景图片
+        bg_image = Image.open("./icons/bk_admin01.jpg")
+        bg_image = bg_image.resize((1600, 800))  # 确保图片大小与窗口一致
+        bg_photo = ImageTk.PhotoImage(bg_image)
+        bg_label = tk.Label(window, image=bg_photo)
+        bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        bg_label.image = bg_photo  # 防止图片被垃圾回收
+        bg_label.is_bg_label = True  # 标记为背景图片标签
+
+        # 创建大标题
+        title_label = tk.Label(window, text="装备统计信息", font=("Arial", 30), bg='blue', fg='red')
+        title_label.pack(pady=(50, 20))
+
+        # 统计信息区域
+        stats_frame = tk.Frame(window, bg='white')
+        stats_frame.pack(fill=tk.BOTH, expand=True, pady=10)
+
+        # 装备总数
+        total_equipment_query = "SELECT COUNT(*) FROM Equipment"
+        total_equipment_value = fetch_one(total_equipment_query)
+        total_equipment_label_value = tk.Label(stats_frame, text=f"总装备数：{total_equipment_value[0]}", font=("Arial", 14))
+        total_equipment_label_value.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+
+        # 部署最多的装备
+        most_deployed_equipment_query = """
+        SELECT EquipmentName, SUM(DeploymentQty) FROM Equipment 
+        JOIN Exercise_Equipment ON Equipment.EquipmentID = Exercise_Equipment.EquipmentID
+        GROUP BY EquipmentName
+        ORDER BY SUM(DeploymentQty) DESC LIMIT 1
+        """
+        most_deployed_equipment_value = fetch_one(most_deployed_equipment_query)
+        most_deployed_equipment_label_value = tk.Label(stats_frame, text=f"部署最多的装备：{most_deployed_equipment_value[0]} ({most_deployed_equipment_value[1]} 部署)", font=("Arial", 14))
+        most_deployed_equipment_label_value.grid(row=1, column=0, padx=10, pady=5, sticky="w")
+
+        # 部署总数
+        total_deployment_query = "SELECT SUM(DeploymentQty) FROM Equipment"
+        total_deployment_value = fetch_one(total_deployment_query)
+        total_deployment_label_value = tk.Label(stats_frame, text=f"部署总数：{total_deployment_value[0]}", font=("Arial", 14))
+        total_deployment_label_value.grid(row=2, column=0, padx=10, pady=5, sticky="w")
+
+        # 持续最长的装备
+        longest_equipment_query = """
+        SELECT EquipmentName FROM Equipment 
+        JOIN Exercise_Equipment ON Equipment.EquipmentID = Exercise_Equipment.EquipmentID
+        JOIN Exercise ON Exercise_Equipment.ExerciseID = Exercise.ExerciseID
+        ORDER BY DATEDIFF(Exercise.EndTime, Exercise.StartTime) DESC LIMIT 1
+        """
+        longest_equipment_value = fetch_one(longest_equipment_query)
+        longest_equipment_label_value = tk.Label(stats_frame, text=f"持续最长的装备：{longest_equipment_value[0]}", font=("Arial", 14))
+        longest_equipment_label_value.grid(row=3, column=0, padx=10, pady=5, sticky="w")
+
+        # 返回按钮
+        back_button = tk.Button(window, text="返回", command=lambda: user_show_table(window, "Equipment"), bg='#4CAF50', fg='white', font=("Arial", 14))
+        back_button.pack(side=tk.BOTTOM, pady=10)
+
+    except Exception as e:
+        messagebox.showerror("错误", f"加载数据时发生错误: {e}")
+
+
+
 def show_equipment_type_stats(window):
     """展示按装备类型统计的数量"""
     try:
@@ -569,6 +610,7 @@ def show_scale_stats(window):
 
     except Exception as e:
         messagebox.showerror("错误", f"加载数据时发生错误: {e}")
+
 def show_media_stats(window):
     """展示媒体总数统计"""
     try:
@@ -601,24 +643,71 @@ def show_media_per_exercise_stats(window):
         for widget in window.winfo_children():
             widget.destroy()
 
+        # 设置背景图片
+        bg_image = Image.open("./icons/bk_admin01.jpg")
+        bg_image = bg_image.resize((1600, 800))  # 确保图片大小与窗口一致
+        bg_photo = ImageTk.PhotoImage(bg_image)
+        bg_label = tk.Label(window, image=bg_photo)
+        bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        bg_label.image = bg_photo  # 防止图片被垃圾回收
+        bg_label.is_bg_label = True  # 标记为背景图片标签
+
+        # 创建大标题
+        title_label = tk.Label(window, text="按演习统计的媒体数量", font=("Arial", 30), bg='blue', fg='red')
+        title_label.pack(pady=(50, 20))
+
         # 统计信息区域
-        stats_frame = tk.Frame(window)
+        stats_frame = tk.Frame(window, bg='white')
         stats_frame.pack(fill=tk.BOTH, expand=True, pady=10)
 
         # 按演习统计媒体数量
-        media_per_exercise_value = fetch_all("SELECT ExerciseID, COUNT(*) FROM Media GROUP BY ExerciseID")
-        media_per_exercise_label = tk.Label(stats_frame, text="按演习统计的媒体数量：", font=("Arial", 14))
-        media_per_exercise_label.grid(row=0, column=0, padx=10, pady=5)
+        media_per_exercise_value = fetch_all("""
+            SELECT ExerciseID, COUNT(*) 
+            FROM Media 
+            GROUP BY ExerciseID
+        """)
 
-        media_per_exercise_value_label = tk.Label(stats_frame, text="\n".join([f"演习ID {row[0]}: {row[1]}" for row in media_per_exercise_value]), font=("Arial", 14))
-        media_per_exercise_value_label.grid(row=1, column=0, padx=10, pady=5)
+        # 查询演习名称
+        exercise_names = {row[0]: row[1] for row in fetch_all("SELECT ExerciseID, ExerciseName FROM Exercise")}
+
+        # 计算总媒体数量
+        total_media_query = "SELECT COUNT(*) FROM Media"
+        total_media_result = fetch_one(total_media_query)
+        total_media = total_media_result[0] if total_media_result else 0
+
+        # 使用 Treeview 展示统计信息
+        treeview = ttk.Treeview(stats_frame, columns=("ExerciseName", "MediaCount"), show="headings")
+        treeview.heading("ExerciseName", text="演习名称")
+        treeview.heading("MediaCount", text="媒体数量")
+        treeview.column("ExerciseName", width=400, anchor="center")  # 设置列宽
+        treeview.column("MediaCount", width=200, anchor="center")    # 设置列宽
+
+        # 插入每个演习的媒体数量
+        for row in media_per_exercise_value:
+            exercise_name = exercise_names.get(row[0], "未知演习")  # 如果没有找到名称则显示"未知演习"
+            treeview.insert("", "end", values=(exercise_name, row[1]))
+
+        # 插入总计行
+        treeview.insert("", "end", values=("总计", total_media), tags=('total',))
+
+        # 设置总计行的样式
+        style = ttk.Style()
+        style.configure('Total.TLabel', background='lightgray', foreground='black', font=("Arial", 14, 'bold'))
+        treeview.tag_configure('total', background='lightgray', foreground='black', font=("Arial", 14, 'bold'))
+
+        treeview.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         # 返回按钮
-        back_button = tk.Button(window, text="返回", command=lambda: user_show_table(window, "Media"))
-        back_button.pack(pady=10)
+        back_button = tk.Button(window, text="返回", command=lambda: user_show_table(window, "Media"),
+                                bg='#4CAF50', fg='white', font=("Arial", 14))
+        back_button.pack(side=tk.BOTTOM, pady=10)
 
     except Exception as e:
         messagebox.showerror("错误", f"加载数据时发生错误: {e}")
+
+
+
+
 def show_reaction_stats(window):
     """展示反应总数统计"""
     try:
