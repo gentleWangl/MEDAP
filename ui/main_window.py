@@ -329,8 +329,9 @@ def show_table_select_of_user(window):
 
 def main_window(identity):
     """根据用户身份显示不同内容"""
+    idt = "管理员" if identity == "admin" else " 普通用户"
     window = tk.Tk()
-    window.title(f"{identity} 主界面")
+    window.title(f"{idt} 界面")
     window.geometry("1600x800")
 
     if identity == "admin":
@@ -355,7 +356,7 @@ def show_country_exercise_stats(window):
             widget.destroy()
 
         # 设置背景图片
-        bg_image = Image.open("./icons/bk_admin01.jpg")
+        bg_image = Image.open("./icons/bk_stats.jpg")
         bg_image = bg_image.resize((1600, 800))  # 确保图片大小与窗口一致
         bg_photo = ImageTk.PhotoImage(bg_image)
         bg_label = tk.Label(window, image=bg_photo)
@@ -415,7 +416,7 @@ def show_exercise_stats(window):
             widget.destroy()
 
         # 设置背景图片
-        bg_image = Image.open("./icons/bk_admin01.jpg")
+        bg_image = Image.open("./icons/bk_stats.jpg")
         bg_image = bg_image.resize((1600, 800))  # 确保图片大小与窗口一致
         bg_photo = ImageTk.PhotoImage(bg_image)
         bg_label = tk.Label(window, image=bg_photo)
@@ -482,7 +483,7 @@ def show_equipment_stats(window):
             widget.destroy()
 
         # 设置背景图片
-        bg_image = Image.open("./icons/bk_admin01.jpg")
+        bg_image = Image.open("./icons/bk_stats.jpg")
         bg_image = bg_image.resize((1600, 800))  # 确保图片大小与窗口一致
         bg_photo = ImageTk.PhotoImage(bg_image)
         bg_label = tk.Label(window, image=bg_photo)
@@ -549,7 +550,7 @@ def show_equipment_type_stats(window):
             widget.destroy()
 
         # 设置背景图片
-        bg_image = Image.open("./icons/bk_admin01.jpg")
+        bg_image = Image.open("./icons/bk_stats.jpg")
         bg_image = bg_image.resize((1600, 800))  # 确保图片大小与窗口一致
         bg_photo = ImageTk.PhotoImage(bg_image)
         bg_label = tk.Label(window, image=bg_photo)
