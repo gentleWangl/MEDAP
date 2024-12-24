@@ -6,7 +6,6 @@ from PIL import Image, ImageTk
 
 def show_table(window, table_name):
     """显示选定表的数据"""
-    # 获取数据
     try:
         query = f"SELECT * FROM {table_name}"
         rows = fetch_all(query)  # 使用 fetch_all 函数
@@ -33,26 +32,41 @@ def show_table(window, table_name):
         treeview.pack(fill=tk.BOTH, expand=True)
 
         # 操作按钮框架
-        action_frame = tk.Frame(window)
-        action_frame.pack(fill=tk.X, pady=10)
+        action_frame = tk.Frame(window, bg="white")
+        action_frame.pack(fill=tk.X, pady=10, padx=20)
+
+        # 加载按钮图标
+        delete_icon = Image.open("./icons/delete.png").resize((30, 30))
+        delete_icon = ImageTk.PhotoImage(delete_icon)
+
+        update_icon = Image.open("./icons/update.png").resize((30, 30))
+        update_icon = ImageTk.PhotoImage(update_icon)
+
+        add_icon = Image.open("./icons/add.png").resize((30, 30))
+        add_icon = ImageTk.PhotoImage(add_icon)
 
         # 删除按钮
-        delete_button = tk.Button(action_frame, text="删除选中记录", command=lambda: delete_data(table_name, treeview))
+        delete_button = tk.Button(action_frame, text=" 删除选中记录", image=delete_icon, compound="left", command=lambda: delete_data(table_name, treeview), bg='#FF6347', fg='white', font=("Arial", 12, 'bold'))
+        delete_button.image = delete_icon  # 防止图标被垃圾回收
         delete_button.pack(side=tk.LEFT, padx=10)
 
         # 修改按钮
-        update_button = tk.Button(action_frame, text="修改选中记录", command=lambda: update_data(table_name, treeview))
+        update_button = tk.Button(action_frame, text=" 修改选中记录", image=update_icon, compound="left", command=lambda: update_data(table_name, treeview), bg='#4CAF50', fg='white', font=("Arial", 12, 'bold'))
+        update_button.image = update_icon  # 防止图标被垃圾回收
         update_button.pack(side=tk.LEFT, padx=10)
 
         # 添加按钮
-        add_button = tk.Button(action_frame, text="添加记录", command=lambda: add_data(table_name))
+        add_button = tk.Button(action_frame, text=" 添加记录", image=add_icon, compound="left", command=lambda: add_data(table_name), bg='#1E90FF', fg='white', font=("Arial", 12, 'bold'))
+        add_button.image = add_icon  # 防止图标被垃圾回收
         add_button.pack(side=tk.LEFT, padx=10)
+
         # 返回按钮
-        back_button = tk.Button(window, text="返回", command=lambda: show_table_select_of_admin(window))
+        back_button = tk.Button(window, text=" 返回", command=lambda: show_table_select_of_admin(window), bg='#808080', fg='white', font=("Arial", 14, 'bold'))
         back_button.pack(pady=10)
 
     except Exception as e:
         messagebox.showerror("错误", f"加载数据时发生错误: {e}")
+
 
 
 def user_show_table(window, table_name):
@@ -175,10 +189,10 @@ def update_data(table_name, treeview):
 
     def submit_update():
         updated_values = {col: entry.get() for col, entry in entries.items()}
-        set_clause = ", ".join([f"{col} = %s" for col in updated_values])
         primary_key = current_values[0]  # 假设ID是主键
         try:
-            update_record(table_name, primary_key, updated_values)  # 使用 update_record 更新数据
+            # 使用 update_record 更新数据，传递表名、主键ID、更新的列和值
+            update_record(table_name, primary_key, updated_values)  
             messagebox.showinfo("成功", "数据已更新")
             show_table(update_window.master, table_name)  # 刷新数据
             update_window.destroy()
@@ -187,6 +201,8 @@ def update_data(table_name, treeview):
 
     submit_button = tk.Button(update_window, text="提交", command=submit_update)
     submit_button.grid(row=len(entries), columnspan=2, pady=10)
+
+
 
 def add_data(table_name):
     """添加新记录"""
@@ -618,24 +634,67 @@ def show_media_stats(window):
         for widget in window.winfo_children():
             widget.destroy()
 
+        # 设置背景图片
+        bg_image = Image.open("./icons/bk_admin01.jpg")
+        bg_image = bg_image.resize((1600, 800))  # 确保图片大小与窗口一致
+        bg_photo = ImageTk.PhotoImage(bg_image)
+        bg_label = tk.Label(window, image=bg_photo)
+        bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        bg_label.image = bg_photo  # 防止图片被垃圾回收
+        bg_label.is_bg_label = True  # 标记为背景图片标签
+
+        # 创建大标题
+        title_label = tk.Label(window, text="媒体统计", font=("Arial", 30), bg='blue', fg='red')
+        title_label.pack(pady=(50, 20))
+
         # 统计信息区域
-        stats_frame = tk.Frame(window)
+        stats_frame = tk.Frame(window, bg='white')
         stats_frame.pack(fill=tk.BOTH, expand=True, pady=10)
 
-        # 媒体总数
-        total_media_label = tk.Label(stats_frame, text="媒体总数：", font=("Arial", 14))
-        total_media_label.grid(row=0, column=0, padx=10, pady=5)
+        # 获取媒体总数
+        total_media_query = "SELECT COUNT(*) FROM Media"
+        total_media_result = fetch_one(total_media_query)
+        total_media = total_media_result[0] if total_media_result else 0
 
-        total_media_value = fetch_all("SELECT COUNT(*) FROM Media")
-        total_media_label_value = tk.Label(stats_frame, text=total_media_value[0][0], font=("Arial", 14))
-        total_media_label_value.grid(row=0, column=1, padx=10, pady=5)
+        # 获取报导次数最多的媒体
+        most_reported_media_query = """
+            SELECT MediaSource, COUNT(*) AS ReportCount
+            FROM Media
+            GROUP BY MediaSource
+            ORDER BY ReportCount DESC
+            LIMIT 1
+        """
+        most_reported_media_result = fetch_one(most_reported_media_query)
+        most_reported_media = most_reported_media_result[0] if most_reported_media_result else "无数据"
+        report_count = most_reported_media_result[1] if most_reported_media_result else 0
+
+        # 使用 Treeview 展示统计信息
+        treeview = ttk.Treeview(stats_frame, columns=("StatType", "Value"), show="headings")
+        treeview.heading("StatType", text="统计项")
+        treeview.heading("Value", text="值")
+        treeview.column("StatType", width=400, anchor="center")
+        treeview.column("Value", width=200, anchor="center")
+
+        # 插入媒体总数
+        treeview.insert("", "end", values=("媒体总数", total_media))
+
+        # 插入报导次数最多的媒体
+        treeview.insert("", "end", values=("报导次数最多的媒体", f"{most_reported_media} ({report_count}次)"))
+
+        # 设置总计行的样式
+        style = ttk.Style()
+        style.configure('Total.TLabel', background='lightgray', foreground='black', font=("Arial", 14, 'bold'))
+
+        treeview.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         # 返回按钮
-        back_button = tk.Button(window, text="返回", command=lambda: user_show_table(window, "Media"))
-        back_button.pack(pady=10)
+        back_button = tk.Button(window, text="返回", command=lambda: user_show_table(window, "Media"),
+                                bg='#4CAF50', fg='white', font=("Arial", 14))
+        back_button.pack(side=tk.BOTTOM, pady=10)
 
     except Exception as e:
         messagebox.showerror("错误", f"加载数据时发生错误: {e}")
+
 def show_media_per_exercise_stats(window):
     """展示按演习统计媒体数量"""
     try:
